@@ -1,4 +1,3 @@
-from email.message import Message
 import nextcord
 from datetime import datetime
 
