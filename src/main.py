@@ -2,20 +2,30 @@ import nextcord
 from nextcord.ext import commands
 from os import getenv
 from dotenv import load_dotenv
-import slash_commands.commands as slashcommands
+import d_bot as bot
 
-intents = nextcord.Intents.default()
-intents.members = True
+from slash_commands.commands import register_commands
+from utils.json_utils import get_suggestion_channel, get_watching
+from utils.suggestions import create_suggestion
 
-bot = commands.Bot(command_prefix="$")
 
-@bot.event
+
+
+@bot.BOT.event
 async def on_ready():
     print("bot is now ready")
+
+@bot.BOT.event
+async def on_message(message : nextcord.Message):
+    if get_watching() and message.channel == get_suggestion_channel() and message.author.id != bot.BOT.user.id:
+        await create_suggestion(message.content, message.author)
+        await message.delete()
 
 load_dotenv()
 test_guild = int(getenv("GUILD_ID"))
 
-slashcommands.init(bot, test_guild)
+register_commands(bot.BOT, test_guild)
 
-bot.run(getenv("TOKEN"))
+
+
+bot.BOT.run(getenv("TOKEN"))
