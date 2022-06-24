@@ -19,6 +19,14 @@ import d_bot as bot
 
 def register_commands(bot : commands.Bot, test_guild : int):
 
+    @bot.message_command()
+    async def accept(interaction: nextcord.Interaction, message: nextcord.Message):
+        if await suggestions.mark(x, reason, status):
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"suggestion status: {status} -- moved to {json_utils.get_suggestion_log_channel().mention}"))
+        else:
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"message selected was not a suggestion"))
+
+    
     @bot.slash_command(default_member_permissions = 1)
     async def suggest(
     interaction: Interaction,
