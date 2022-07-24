@@ -1,4 +1,4 @@
-import nextcord
+ximport nextcord
 from datetime import datetime
 
 import d_bot as bot
@@ -28,7 +28,7 @@ def create_suggestion_embed(message, user : nextcord.User):
     e.set_author(name=user.name, icon_url=user.avatar.url)
 
 
-    e.title=f"**Suggestion**:"
+    e.title="**Suggestion**:"
     e.description=message
     e.set_footer(text=suggesty_id)
     e.timestamp = datetime.now()
@@ -55,9 +55,9 @@ async def create_suggestion(message, user):
 
 async def create_finished_suggestion_embed(suggestion_message : nextcord.Message, reason : str, status : SuggestionMark):
     suggestion_embed = suggestion_message.embeds[0]
-    if suggesty_id not in suggestion_embed.footer.text:
-        return await create_finished_suggestion_embed_old(suggestion_message, reason, status)    
-    for r in  suggestion_message.reactions:
+    if suggestion_embed.footer.text == nextcord.Embed.Empty or suggesty_id not in suggestion_embed.footer.text:
+        return create_finished_suggestion_embed_old(message, reason, status)  
+    for r in suggestion_message.reactions:
         r : nextcord.Reaction
         if r.emoji == json_utils.get_up_emoji():
             num_pro = r.count - 1
