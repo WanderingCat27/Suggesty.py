@@ -56,8 +56,8 @@ async def create_suggestion(message, user):
 
 async def create_finished_suggestion_embed(suggestion_message : nextcord.Message, reason : str, status : SuggestionMark):
     suggestion_embed = suggestion_message.embeds[0]
-    if suggesty_id not in suggestion_embed.footer.text:
-        return create_finished_suggestion_embed_old(message, reason, status)    
+    if suggest_embed.footer.text != nextcord.Embed.Empty and suggesty_id not in suggestion_embed.footer.text:
+        return create_finished_suggestion_embed_old(message, reason, status)  
     for r in  suggestion_message.reactions:
         r : nextcord.Reaction
         if r.emoji == json_utils.get_up_emoji():
