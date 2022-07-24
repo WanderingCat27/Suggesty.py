@@ -17,8 +17,32 @@ import d_bot as bot
 # suggest log channel
 
 
-def register_commands(bot : commands.Bot, test_guild : int):
+def register_commands(bot : commands.Bot):
 
+    @bot.message_command()
+    async def accept(interaction: nextcord.Interaction, message: nextcord.Message):
+        if await suggestions.mark(message.id, "", suggestions.Accept):
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"suggestion status: Accept -- moved to {json_utils.get_suggestion_log_channel().mention}"))
+        else:
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"message selected was not a suggestion"))
+  
+  
+    @bot.message_command()
+    async def deny(interaction: nextcord.Interaction, message: nextcord.Message):
+        if await suggestions.mark(message.id, "", suggestions.Deny):
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"suggestion status: Deny -- moved to {json_utils.get_suggestion_log_channel().mention}"))
+        else:
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"message selected was not a suggestion"))
+
+    @bot.message_command()
+    async def waiting(interaction: nextcord.Interaction, message: nextcord.Message):
+        if await suggestions.mark(message.id, "", suggestions.Wait):
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed("suggestion status: Held -- updated suggestion"))
+        else:
+             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"message selected was not a suggestion"))
+
+
+    
     @bot.slash_command(default_member_permissions = 1)
     async def suggest(
     interaction: Interaction,
@@ -67,7 +91,7 @@ def register_commands(bot : commands.Bot, test_guild : int):
             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"suggestion log channel needs to be a text channel, {channel.mention} is a {channel.type} channel"))
 
 
-    l = ["Accept", "Deny", "Hold"]
+    l = [suggestions.Accept.name, suggestions.Wait.name, suggestions.Deny.name]
     @bot.slash_command(default_member_permissions = 8)
     async def mark(
     interaction: Interaction,
@@ -95,12 +119,20 @@ def register_commands(bot : commands.Bot, test_guild : int):
         except:
             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"message id is not an int: {message_id}"))
             return
-        if await suggestions.mark(x, reason, status):
-            await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"suggestion status: {status} -- moved to {json_utils.get_suggestion_log_channel().mention}"))
+        m : suggestions.SuggestionMark
+        if status.lower() == suggestions.Accept.name.lower():
+            m = suggestions.Accept
+        elif status.lower() == suggestions.Wait.name.lower():
+            m = suggestions.Wait
+        elif status.lower() == suggestions.Deny.name.lower():
+            m = suggestions.Deny
+
+        if await suggestions.mark(x, reason, m):
+            await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"suggestion status: {m.name} -- moved to {json_utils.get_suggestion_log_channel().mention}"))
         else:
             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"Make sure suggestion log channel is setup and the message id is correct"))
     @mark.on_autocomplete("status")
-    async def favorite_dog(interaction: Interaction, status: str):
+    async def status_autocomplete(interaction: Interaction, status: str):
         if not status:
             # send the full autocomplete list
             await interaction.response.send_autocomplete(l)

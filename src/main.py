@@ -17,14 +17,12 @@ async def on_ready():
 
 @bot.BOT.event
 async def on_message(message : nextcord.Message):
-    if get_watching() and message.channel == get_suggestion_channel() and message.author.id != bot.BOT.user.id:
+    if get_watching() and message.channel == get_suggestion_channel() and message.author.id != bot.BOT.user.id and message.type == nextcord.MessageType.default:
         await create_suggestion(message.content, message.author)
         await message.delete()
 
 load_dotenv()
-test_guild = int(getenv("GUILD_ID"))
-
-register_commands(bot.BOT, test_guild)
+register_commands(bot.BOT)
 
 
 
