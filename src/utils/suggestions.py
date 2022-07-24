@@ -5,6 +5,16 @@ from datetime import datetime
 import d_bot as bot
 import utils.json_utils as json_utils
 
+class SuggestionMark: 
+    def __init__(self, name : str, color_code : nextcord.Colour, push_to_log : bool):
+        self.name = name
+        self.color_code = color_code
+        self.push_to_log = push_to_log
+    
+Accept = SuggestionMark("Accepted", nextcord.Colour.green(), True)
+Wait = SuggestionMark("Waiting", nextcord.Colour.yellow(), False)
+Deny = SuggestionMark("Denied", nextcord.Colour.red(), True)
+
 COLOR_CODE = nextcord.Colour.from_rgb(59, 176, 255)
 suggesty_id = "*** Suggesty Bot ***"
 
@@ -44,27 +54,21 @@ async def create_suggestion(message, user):
     await a.add_reaction(json_utils.get_up_emoji())
     await a.add_reaction(json_utils.get_down_emoji())
 
-async def create_finished_suggestion_embed(suggestion_message : nextcord.Message, reason : str, passed : bool):
+async def create_finished_suggestion_embed(suggestion_message : nextcord.Message, reason : str, status : SuggestionMark):
     suggestion_embed = suggestion_message.embeds[0]
     if suggesty_id not in suggestion_embed.footer.text:
-        return create_finished_suggestion_embed_old(message, reason, passed)
-    
+        return create_finished_suggestion_embed_old(message, reason, status)    
     for r in  suggestion_message.reactions:
         r : nextcord.Reaction
         if r.emoji == json_utils.get_up_emoji():
             num_pro = r.count - 1
         elif r.emoji == json_utils.get_down_emoji():
             num_against = r.count - 1
-    
+
     e = nextcord.Embed()
-    p = ""
-    if passed:
-        e.color = nextcord.Colour.green()
-        p = "Accepted"
-    else:
-        e.color = nextcord.Colour.red()
-        p = "Denied"
-    e.title = p
+
+    e.color = status.color_code
+    e.title = status.name
     e.description = suggestion_embed.description
 
     e.set_author(name=suggestion_embed.author.name, icon_url=suggestion_embed.author.icon_url)
@@ -78,9 +82,15 @@ async def create_finished_suggestion_embed(suggestion_message : nextcord.Message
 
     return e
 
-async def create_finished_suggestion_embed_old(suggestion_message : nextcord.Message, reason : str, passed : bool):
+async def create_finished_suggestion_embed_old(suggestion_message : nextcord.Message, reason : str, status : SuggestionMark):
     suggestion_content = suggestion_message.embeds[0].fields[0].value
     submitter = suggestion_message.embeds[0].fields[0].name
+
+    passed : bool
+    if status == Accept:
+        passed = True
+    elif status == Deny:
+        passed = False
 
     for r in  suggestion_message.reactions:
         r : nextcord.Reaction
@@ -103,14 +113,7 @@ async def create_finished_suggestion_embed_old(suggestion_message : nextcord.Mes
 
     return e
 
-async def mark(id, reason, status):
-    passed = False
-    if status.lower() == "accept":
-        passed = True
-    elif status.lower() == "deny":
-        passed = False
-    else:
-        return True # ignores hold rn -- not implemented
+async def mark(id, reason, status : SuggestionMark):
     log = json_utils.get_suggestion_log_channel()
     if log == None:
         print("no log file")
@@ -123,7 +126,17 @@ async def mark(id, reason, status):
     m : nextcord.Message
     if not is_suggestion_embed(m):
         print("invalid suggestion message seleceted")
-        return False 
-    await log.send(embed= await create_finished_suggestion_embed(m, reason, passed))
-    await m.delete()
+        return False
+    if status.push_to_log: 
+        await log.send(embed= await create_finished_suggestion_embed(m, reason, status))
+        await m.delete()
+    else:
+        e = m.embeds[0].copy()
+        e.color = status.color_code 
+        e.title = "Suggestion -- " + status.name + ":"
+        r = ""
+        if reason:
+            r = "- " + reason + "\n"
+        e.set_footer(text= r + e.footer.text)
+        await  m.edit(embed=e)
     return True
