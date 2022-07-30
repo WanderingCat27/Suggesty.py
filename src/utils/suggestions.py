@@ -1,5 +1,6 @@
-ximport nextcord
 from datetime import datetime
+
+import nextcord
 
 import d_bot as bot
 import utils.json_utils as json_utils
@@ -49,14 +50,16 @@ def create_command_error_embed(text : str):
 
 
 async def create_suggestion(message, user):
+    a : nextcord.Message
     a = await json_utils.get_suggestion_channel().send(embed=create_suggestion_embed(message, user))
     await a.add_reaction(json_utils.get_up_emoji())
     await a.add_reaction(json_utils.get_down_emoji())
+    await a.create_thread(name="Discussion")
 
 async def create_finished_suggestion_embed(suggestion_message : nextcord.Message, reason : str, status : SuggestionMark):
     suggestion_embed = suggestion_message.embeds[0]
     if suggestion_embed.footer.text == nextcord.Embed.Empty or suggesty_id not in suggestion_embed.footer.text:
-        return create_finished_suggestion_embed_old(message, reason, status)  
+        return create_finished_suggestion_embed_old(suggestion_message, reason, status)  
     for r in suggestion_message.reactions:
         r : nextcord.Reaction
         if r.emoji == json_utils.get_up_emoji():
@@ -77,7 +80,7 @@ async def create_finished_suggestion_embed(suggestion_message : nextcord.Message
     r = ""
     if reason != "":
         r = "Reason: " + reason
-    e.set_footer(text=f"{r} \n\n{num_pro} ✔️ to {num_against} ❌  \nSubmitted: {t}")
+    e.set_footer(text=f"{r} \n\n{num_pro} {json_utils.get_up_emoji()} to {num_against} {json_utils.get_down_emoji()}  \nSubmitted: {t}")
 
     return e
 
@@ -136,6 +139,9 @@ async def mark(id, reason, status : SuggestionMark):
         r = ""
         if reason:
             r = "- " + reason + "\n"
-        e.set_footer(text= r + e.footer.text)
+        if e.footer.text == nextcord.Embed.Empty:
+            e.set_footer(text=r)
+        else:
+            e.set_footer(text= r + e.footer.text)
         await  m.edit(embed=e)
     return True
