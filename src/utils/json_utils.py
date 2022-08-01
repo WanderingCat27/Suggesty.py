@@ -16,6 +16,19 @@ def save():
     with open(file_loc, "w", encoding="utf8") as f:
         f.write(json_object)
 
+def set_role(role : nextcord.Role):
+    data["role-id"] = role.id
+    save()
+
+def get_role() ->  nextcord.role:
+    if "role-id" not in data:
+        return None
+    c = data["suggestion-channel-id"]
+    if c == None:
+        return None
+
+    return get_suggestion_channel().guild.get_role(data["role-id"])
+
 def get_suggestion_channel() ->  nextcord.abc.GuildChannel:
     if "suggestion-channel-id" not in data:
         return None

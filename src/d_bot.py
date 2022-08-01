@@ -3,6 +3,7 @@ import nextcord
 
 intents = nextcord.Intents.default()
 intents.message_content = True
+intents.members = True
 
 global BOT
 BOT = commands.Bot(command_prefix="$", intents=intents)
