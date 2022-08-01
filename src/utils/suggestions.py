@@ -31,7 +31,7 @@ def create_suggestion_embed(message, user : nextcord.User):
 
     e.title="**Suggestion**:"
     e.description=message
-    e.set_footer(text=suggesty_id)
+    e.set_footer(text=suggesty_id + ' • user-id: ' + str(user.id))
     e.timestamp = datetime.now()
     
     return e
@@ -51,12 +51,16 @@ def create_command_error_embed(text : str):
 
 async def create_suggestion(message, user):
     a : nextcord.Message
-    a = await json_utils.get_suggestion_channel().send(embed=create_suggestion_embed(message, user))
+    r = json_utils.get_role()
+    c = ''
+    if r != None:
+        c = r.mention
+    a = await json_utils.get_suggestion_channel().send(content=c, embed=create_suggestion_embed(message, user))
     await a.add_reaction(json_utils.get_up_emoji())
     await a.add_reaction(json_utils.get_down_emoji())
     await a.create_thread(name="Discussion")
 
-async def create_finished_suggestion_embed(suggestion_message : nextcord.Message, reason : str, status : SuggestionMark):
+async def create_finished_suggestion_embed(suggestion_message : nextcord.Message, reason : str, status : SuggestionMark) -> nextcord.Embed:
     suggestion_embed = suggestion_message.embeds[0]
     if suggestion_embed.footer.text == nextcord.Embed.Empty or suggesty_id not in suggestion_embed.footer.text:
         return create_finished_suggestion_embed_old(suggestion_message, reason, status)  
@@ -77,10 +81,16 @@ async def create_finished_suggestion_embed(suggestion_message : nextcord.Message
     # e.set_thumbnail("https://www.publicdomainpictures.net/pictures/120000/velka/office-stamp.jpg")
     
     t = suggestion_embed.timestamp.strftime("%b %d %y %I:%M %p")
-    r = ""
+
     if reason != "":
-        r = "Reason: " + reason
-    e.set_footer(text=f"{r} \n\n{num_pro} {json_utils.get_up_emoji()} to {num_against} {json_utils.get_down_emoji()}  \nSubmitted: {t}")
+        e.add_field(name='Reason', value=reason)
+    e.add_field(name="Votes", value="{num_pro} {json_utils.get_up_emoji()} to {num_against} {json_utils.get_down_emoji()}")
+    
+    s = suggestion_embed.footer.text.split('user-id: ')
+    id = ''
+    if len(s) > 1:
+        id = ' • user-id: ' + s[1]
+    e.set_footer(text=f"Submitted: {t}{id}")
 
     return e
 
@@ -130,7 +140,13 @@ async def mark(id, reason, status : SuggestionMark):
         print("invalid suggestion message seleceted")
         return False
     if status.push_to_log: 
-        await log.send(embed= await create_finished_suggestion_embed(m, reason, status))
+        e = await create_finished_suggestion_embed(m, reason, status)
+        e : nextcord.Embed
+        c = ''
+        if e.footer.text != nextcord.Embed.Empty and 'user-id' in e.footer.text:
+            c = log.guild.get_member(int(e.footer.text.split('user-id: ')[1])).mention
+
+        await log.send(content=c, embed=e)
         await m.delete()
     else:
         e = m.embeds[0].copy()

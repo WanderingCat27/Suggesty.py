@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from nextcord import ChannelType, Interaction, SlashOption
+from nextcord import ChannelType, Interaction, Role, SlashOption
 
 import utils.suggestions as suggestions
 import utils.json_utils as json_utils
@@ -58,6 +58,18 @@ def register_commands(bot : commands.Bot):
         else:
             await suggestions.create_suggestion(message, interaction.user)            
             await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"created suggestion, see {json_utils.get_suggestion_channel().mention}"))
+
+    @bot.slash_command(default_member_permissions = 8)
+    async def suggestion_notif(
+    interaction: Interaction,
+    role: Role = SlashOption(
+        name="role",
+        description="Choose the role that should me @ whenever a suggestion is submitted",
+        required=True,
+        autocomplete=False
+    )):
+        x = await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"set {role} as notification role"))
+        json_utils.set_role(role)
 
     @bot.slash_command(default_member_permissions = 8)
     async def suggestion_channel(
