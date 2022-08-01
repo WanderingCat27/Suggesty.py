@@ -26,7 +26,10 @@ def is_suggestion_embed(m : nextcord.Message):
 def create_suggestion_embed(message, user : nextcord.User): 
     e = nextcord.Embed(color=COLOR_CODE)
     # e.set_thumbnail("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn.pixabay.com%2Fphoto%2F2016%2F03%2F30%2F02%2F21%2Fidea-1289871_960_720.jpg&f=1&nofb=1")
-    e.set_author(name=user.nick, icon_url=user.avatar.url)
+    n = user.nick
+    if n == None:
+        n = user.name
+    e.set_author(name=n, icon_url=user.avatar.url)
 
 
     e.title="**Suggestion**:"
