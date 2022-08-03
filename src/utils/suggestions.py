@@ -29,9 +29,10 @@ def create_suggestion_embed(message, user : nextcord.User):
     n = user.nick
     if n == None:
         n = user.name
-    u = user.avatar.url
-    if u == None:
-        u = "https://williamdaysioss.blogspot.com/2021/08/black-screen-24-hours-of-pure-black.html"
+    
+    u = "https://williamdaysioss.blogspot.com/2021/08/black-screen-24-hours-of-pure-black.html"
+    if u != None:
+        u = user.avatar.url
     e.set_author(name=n, icon_url=user.avatar.url)
 
 
