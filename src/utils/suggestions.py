@@ -91,7 +91,7 @@ async def create_finished_suggestion_embed(suggestion_message : nextcord.Message
 
     if reason != "":
         e.add_field(name='Reason', value=reason)
-    e.add_field(name="Votes", value="{num_pro} {json_utils.get_up_emoji()} to {num_against} {json_utils.get_down_emoji()}")
+    e.add_field(name="Votes", value=f"{num_pro} {json_utils.get_up_emoji()} to {num_against} {json_utils.get_down_emoji()}")
     
     s = suggestion_embed.footer.text.split('user-id: ')
     id = ''
