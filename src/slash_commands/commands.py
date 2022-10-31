@@ -19,7 +19,7 @@ import d_bot as bot
 
 def register_commands(bot : commands.Bot):
 
-    @bot.message_command()
+    @bot.message_command(default_member_permissions = 8)
     async def accept(interaction: nextcord.Interaction, message: nextcord.Message):
         if await suggestions.mark(message.id, "", suggestions.Accept):
              await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"suggestion status: Accept -- moved to {json_utils.get_suggestion_log_channel().mention}"))
@@ -27,14 +27,14 @@ def register_commands(bot : commands.Bot):
              await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"message selected was not a suggestion"))
   
   
-    @bot.message_command()
+    @bot.message_command(default_member_permissions = 8)
     async def deny(interaction: nextcord.Interaction, message: nextcord.Message):
         if await suggestions.mark(message.id, "", suggestions.Deny):
              await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed(f"suggestion status: Deny -- moved to {json_utils.get_suggestion_log_channel().mention}"))
         else:
              await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_error_embed(f"message selected was not a suggestion"))
 
-    @bot.message_command()
+    @bot.message_command(default_member_permissions = 8)
     async def waiting(interaction: nextcord.Interaction, message: nextcord.Message):
         if await suggestions.mark(message.id, "", suggestions.Wait):
              await interaction.response.send_message(ephemeral=True, embed=suggestions.create_command_success_embed("suggestion status: Held -- updated suggestion"))
